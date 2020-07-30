@@ -72,7 +72,6 @@ class FFPP_Dataset(Dataset):
         image = cv2.imread(img_path, cv2.IMREAD_COLOR)
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
                     
-        
         # Applying hardcore augmentations without rotation
         if self.mode == "train" and self.hardcore and not self.rotation:
             landmark_path = os.path.join(self.data_root, "landmarks", ori_video, img_file[:-4] + ".npy")
@@ -84,7 +83,15 @@ class FFPP_Dataset(Dataset):
             
             # Remove facial parts using convex hull
             elif random.random() < 0.4:
-                blackout_convex_hull(image, detector, predictor, self.cutout_fill)
+                err = 0
+                cp = np.copy(image)
+                try:
+                    blackout_convex_hull(cp, detector, predictor, self.cutout_fill)
+                except Exception:
+                    err = 1                
+                if err == 0:
+                    image = cp
+                
                 
             # Remove parts of image randomly from 6 bitmasks
             # elif random.random() < 0.1:

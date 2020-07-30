@@ -66,9 +66,6 @@ def train(name, run, folds_csv):
                config=config_defaults,
                name=f'{name},val_fold:{VAL_FOLD},run{run}')
     config = wandb.config
-
-    neptune.init('sowmen/dfdc')
-    neptune.create_experiment(name=f'{name},val_fold:{VAL_FOLD},run{run}')
     
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     
@@ -102,7 +99,7 @@ def train(name, run, folds_csv):
                               val_fold=VAL_FOLD,
                               test_fold=TEST_FOLD,
                               cutout_fill=config.cutout_fill,
-                              hardcore=False,
+                              hardcore=True,
                               oversample_real=True,
                               transforms=create_train_transforms(size=224))
     data_train.reset(config.rand_seed)
@@ -169,6 +166,10 @@ def train(name, run, folds_csv):
             break
 
     model.load_state_dict(torch.load(f'weights/{name}_fold_{VAL_FOLD}_run_{run}.h5'))
+
+    neptune.init('sowmen/dfdc')
+    neptune.create_experiment(name=f'{name},val_fold:{VAL_FOLD},run{run}')
+    
     test_history = test(model, test_data_loader, criterion)
 
     try:
@@ -426,8 +427,8 @@ def create_val_transforms(size=224):
 
     
 if __name__ == "__main__":
-    run = 3
+    run = 4
     model_name = 'tf_efficientnet_b4_ns'
-    train(name='01_FF++_baseline1,'+model_name, run=run, folds_csv='folds.csv')
+    train(name='01_FF++_hardcore1,'+model_name, run=run, folds_csv='folds.csv')
 
 

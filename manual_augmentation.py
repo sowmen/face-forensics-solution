@@ -66,41 +66,38 @@ def remove_nose(image, landmarks, cutout_fill):
     return image
 
 def blackout_convex_hull(img, detector, predictor, cutout_fill):
-    try:
-        rects = detector(img)
-        if(len(rects) == 0):
-            return
-        sp = predictor(img, rects[0])
-        landmarks = np.array([[p.x, p.y] for p in sp.parts()])
-        outline = landmarks[[*range(17), *range(26, 16, -1)]]
-        Y, X = skimage.draw.polygon(outline[:, 1], outline[:, 0])
-        cropped_img = np.zeros(img.shape[:2], dtype=np.uint8)
-        cropped_img[Y, X] = 1
-        # if random.random() > 0.5:
-        #     img[cropped_img == 0] = 0
-        #     #leave only face
-        #     return img
-
-        y, x = measure.centroid(cropped_img)
-        y = int(y)
-        x = int(x)
-        first = random.random() > 0.5
-        if random.random() > 0.5:
-            if first:
-                cropped_img[:y, :] = 0
-            else:
-                cropped_img[y:, :] = 0
+    rects = detector(img)
+    if(len(rects) == 0):
+        return
+    sp = predictor(img, rects[0])
+    landmarks = np.array([[p.x, p.y] for p in sp.parts()])
+    outline = landmarks[[*range(17), *range(26, 16, -1)]]
+    Y, X = skimage.draw.polygon(outline[:, 1], outline[:, 0])
+    cropped_img = np.zeros(img.shape[:2], dtype=np.uint8)
+    cropped_img[Y, X] = 1
+    # if random.random() > 0.5:
+    #     img[cropped_img == 0] = 0
+    #     #leave only face
+    #     return img
+    y, x = measure.centroid(cropped_img)
+    y = int(y)
+    x = int(x)
+    first = random.random() > 0.5
+    if random.random() > 0.5:
+        if first:
+            cropped_img[:y, :] = 0
         else:
-            if first:
-                cropped_img[:, :x] = 0
-            else:
-                cropped_img[:, x:] = 0
-        if(cutout_fill == 0):
-            img[cropped_img > 0] = 0
+            cropped_img[y:, :] = 0
+    else:
+        if first:
+            cropped_img[:, :x] = 0
         else:
-            img[cropped_img > 0] = np.random.rand(0,255,img[cropped_img > 0].shape)
-    except Exception as e:
-        print(e)
+            cropped_img[:, x:] = 0
+    if(cutout_fill == 0):
+        img[cropped_img > 0] = 0
+    else:
+        img[cropped_img > 0] = np.random.rand(0,255,img[cropped_img > 0].shape)
+    
 
 def prepare_bit_masks(mask):
     h, w = mask.shape

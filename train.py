@@ -55,7 +55,7 @@ config_defaults = {
     'schedule_patience' : 5,
     'schedule_factor' : 0.25,
     'rand_seed' : 777,
-    'cutout_fill' : 0
+    'cutout_fill' : 1
 }
 VAL_FOLD = 9
 TEST_FOLD = 0
@@ -169,7 +169,7 @@ def train(name, run, folds_csv):
 
     neptune.init('sowmen/dfdc')
     neptune.create_experiment(name=f'{name},val_fold:{VAL_FOLD},run{run}')
-    
+
     test_history = test(model, test_data_loader, criterion)
 
     try:
@@ -427,8 +427,8 @@ def create_val_transforms(size=224):
 
     
 if __name__ == "__main__":
-    run = 4
+    run = 5
     model_name = 'tf_efficientnet_b4_ns'
-    train(name='01_FF++_hardcore1,'+model_name, run=run, folds_csv='folds.csv')
+    train(name='01_FF++_hardcore1_fill,'+model_name, run=run, folds_csv='folds.csv')
 
 

@@ -31,7 +31,7 @@ def remove_eyes(image, landmarks, cutout_fill):
     if cutout_fill == 0:
         image[line, :] = 0
     else:
-       image[line, :] = np.random.rand(0,255,image[line,:].shape)
+       image[line, :] = np.random.randint(0,255,image[line,:].shape)
     return image
 
 def remove_mouth(image, landmarks, cutout_fill):
@@ -45,7 +45,7 @@ def remove_mouth(image, landmarks, cutout_fill):
     if cutout_fill == 0:
         image[line, :] = 0
     else:
-       image[line, :] = np.random.rand(0,255,image[line,:].shape)
+       image[line, :] = np.random.randint(0,255,image[line,:].shape)
     return image
 
 def remove_nose(image, landmarks, cutout_fill):
@@ -62,7 +62,7 @@ def remove_nose(image, landmarks, cutout_fill):
     if cutout_fill == 0:
         image[line, :] = 0
     else:
-       image[line, :] = np.random.rand(0,255,image[line,:].shape)
+       image[line, :] = np.random.randint(0,255,image[line,:].shape)
     return image
 
 def blackout_convex_hull(img, detector, predictor, cutout_fill):
@@ -96,7 +96,7 @@ def blackout_convex_hull(img, detector, predictor, cutout_fill):
     if(cutout_fill == 0):
         img[cropped_img > 0] = 0
     else:
-        img[cropped_img > 0] = np.random.rand(0,255,img[cropped_img > 0].shape)
+        img[cropped_img > 0] = np.random.randint(0,255,img[cropped_img > 0].shape)
     
 
 def prepare_bit_masks(mask):

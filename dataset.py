@@ -13,6 +13,7 @@ from albumentations.augmentations.functional import  rot90
 from albumentations.pytorch.functional import img_to_tensor
 from manual_augmentation import remove_landmark, prepare_bit_masks, change_padding,\
                                 blackout_convex_hull, blackout_random
+from torchvision.transforms import RandomErasing
 
 
 import dlib 
@@ -27,6 +28,7 @@ class FFPP_Dataset(Dataset):
                  val_fold = 1,
                  test_fold = 0,
                  cutout_fill = 0,
+                 random_erase = False,
                  crops_dir = 'face_crops',
                  folds_csv = 'folds.csv',
                  oversample_real = True, # Equalizes number of real and fake frames
@@ -46,6 +48,7 @@ class FFPP_Dataset(Dataset):
         self.val_fold = val_fold
         self.test_fold = test_fold
         self.cutout_fill = cutout_fill
+        self.random_erase = random_erase
         self.crops_dir = crops_dir
         self.folds_csv = folds_csv
         self.oversample_real = oversample_real
@@ -71,9 +74,9 @@ class FFPP_Dataset(Dataset):
         img_path = os.path.join(self.data_root, self.crops_dir, video, img_file)
         image = cv2.imread(img_path, cv2.IMREAD_COLOR)
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-                    
+
         # Applying hardcore augmentations without rotation
-        if self.mode == "train" and self.hardcore and not self.rotation:
+        if self.mode == "train" and self.hardcore and not self.rotation and not self.random_erase:
             landmark_path = os.path.join(self.data_root, "landmarks", ori_video, img_file[:-4] + ".npy")
             
             # Remove facial features using landmark informations
@@ -143,6 +146,10 @@ class FFPP_Dataset(Dataset):
         #     cv2.imwrite(os.path.join("train_images", video+ "_" + str(1 if label > 0.5 else 0) + "_"+img_file), image[...,::-1])
         
         image = img_to_tensor(image, self.normalize)
+
+        if self.mode == "train" and self.random_erase:
+            image = RandomErasing(p=0.5, scale=(0.02,0.2), value="random")(image)
+
         return {
             "image": image, 
             "label": np.array((label,)), 

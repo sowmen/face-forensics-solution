@@ -99,7 +99,8 @@ def train(name, run, folds_csv):
                               val_fold=VAL_FOLD,
                               test_fold=TEST_FOLD,
                               cutout_fill=config.cutout_fill,
-                              hardcore=True,
+                              hardcore=False,
+                              random_erase=True,
                               oversample_real=True,
                               transforms=create_train_transforms(size=224))
     data_train.reset(config.rand_seed)
@@ -407,6 +408,7 @@ def create_train_transforms(size=224):
         GaussNoise(p=0.1),
         GaussianBlur(blur_limit=3, p=0.05),
         HorizontalFlip(),
+
         OneOf([
             IsotropicResize(max_side=size, interpolation_down=cv2.INTER_AREA, interpolation_up=cv2.INTER_CUBIC),
             IsotropicResize(max_side=size, interpolation_down=cv2.INTER_AREA, interpolation_up=cv2.INTER_LINEAR),
@@ -427,8 +429,8 @@ def create_val_transforms(size=224):
 
     
 if __name__ == "__main__":
-    run = 5
+    run = 6
     model_name = 'tf_efficientnet_b4_ns'
-    train(name='01_FF++_hardcore1_fill,'+model_name, run=run, folds_csv='folds.csv')
+    train(name='01_FF++_random_erase1,'+model_name, run=run, folds_csv='folds.csv')
 
 

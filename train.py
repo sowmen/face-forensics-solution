@@ -55,7 +55,7 @@ config_defaults = {
     'schedule_patience' : 5,
     'schedule_factor' : 0.25,
     'rand_seed' : 777,
-    'cutout_fill' : 1
+    'cutout_fill' : 0
 }
 VAL_FOLD = 9
 TEST_FOLD = 0
@@ -87,11 +87,11 @@ def train(name, run, folds_csv):
         optimizer,
         patience=config.schedule_patience,
         threshold=0.001,
-        mode="max",
+        mode="min",
         factor = config.schedule_factor
     )
     criterion = nn.BCEWithLogitsLoss()
-    es = EarlyStopping(patience = 10, mode='max')
+    es = EarlyStopping(patience = 10, mode='min')
     
     data_train = FFPP_Dataset(data_root=DATA_ROOT,
                               mode='train',
@@ -100,7 +100,7 @@ def train(name, run, folds_csv):
                               test_fold=TEST_FOLD,
                               cutout_fill=config.cutout_fill,
                               hardcore=False,
-                              random_erase=True,
+                              random_erase=False,
                               oversample_real=True,
                               transforms=create_train_transforms(size=224))
     data_train.reset(config.rand_seed)
@@ -153,7 +153,7 @@ def train(name, run, folds_csv):
         
         train_metrics = train_epoch(model, train_data_loader, optimizer, criterion, epoch)
         valid_metrics = valid_epoch(model, val_data_loader, criterion, epoch)
-        scheduler.step(valid_metrics['valid_auc'])
+        scheduler.step(valid_metrics['valid_loss'])
 
         print(f"TRAIN_AUC = {train_metrics['train_auc']}, TRAIN_LOSS = {train_metrics['train_loss']}")
         print(f"VALID_AUC = {valid_metrics['valid_auc']}, VALID_LOSS = {valid_metrics['valid_loss']}")
@@ -161,7 +161,7 @@ def train(name, run, folds_csv):
         train_history.append(train_metrics)
         val_history.append(valid_metrics)
 
-        es(valid_metrics['valid_auc'], model, model_path=os.path.join(OUTPUT_DIR,f"{name}_fold_{VAL_FOLD}_run_{run}.h5"))
+        es(valid_metrics['valid_loss'], model, model_path=os.path.join(OUTPUT_DIR,f"{name}_fold_{VAL_FOLD}_run_{run}.h5"))
         if es.early_stop:
             print("Early stopping")
             break
@@ -408,7 +408,6 @@ def create_train_transforms(size=224):
         GaussNoise(p=0.1),
         GaussianBlur(blur_limit=3, p=0.05),
         HorizontalFlip(),
-
         OneOf([
             IsotropicResize(max_side=size, interpolation_down=cv2.INTER_AREA, interpolation_up=cv2.INTER_CUBIC),
             IsotropicResize(max_side=size, interpolation_down=cv2.INTER_AREA, interpolation_up=cv2.INTER_LINEAR),
@@ -429,8 +428,8 @@ def create_val_transforms(size=224):
 
     
 if __name__ == "__main__":
-    run = 6
+    run = 1
     model_name = 'tf_efficientnet_b4_ns'
-    train(name='01_FF++_random_erase1,'+model_name, run=run, folds_csv='folds.csv')
+    train(name='03_FF++_baseline_min_loss,'+model_name, run=run, folds_csv='folds.csv')
 
 
